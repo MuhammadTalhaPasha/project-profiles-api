@@ -52,3 +52,12 @@ class ModelTests(TestCase):
         )
 
         self.assertEqual(str(tag), tag.name)
+
+    def test_file_type_str(self):
+        """test the file_type string representation"""
+        file_type = models.File_type.objects.create(
+            user = sample_user(),
+            type = 'DXF'
+        )
+
+        self.assertEqual(str(file_type), file_type.type)
