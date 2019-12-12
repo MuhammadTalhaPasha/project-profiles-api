@@ -61,3 +61,13 @@ class ModelTests(TestCase):
         )
 
         self.assertEqual(str(file_type), file_type.type)
+
+    def test_uesr_files_str(self):
+        """tests the user_files string representation"""
+        user_files = models.User_Files.objects.create(
+            user = sample_user(),
+            title='file room',
+            created_on='23/5/19'
+        )
+
+        self.assertEqual(str(user_files), user_files.title)
