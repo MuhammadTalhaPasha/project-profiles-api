@@ -61,7 +61,7 @@ class File_type(models.Model):
         return self.type
 
 
-class User_Files(models.Model):
+class User_File(models.Model):
     """user_files object"""
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -70,7 +70,7 @@ class User_Files(models.Model):
     title = models.CharField(max_length=255)
     created_on = models.DateTimeField(auto_now_add=True)
     link = models.CharField(max_length=255, blank=True)
-    file_type = models.ManyToManyField('File_type')
+    file_types = models.ManyToManyField('File_type')
     tags = models.ManyToManyField('Tag')
 
     def __str__(self):

@@ -2,7 +2,7 @@ from rest_framework import viewsets, mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 
-from core.models import Tag, File_type
+from core.models import Tag, File_type, User_File
 
 from user_files import serializers
 
@@ -51,8 +51,21 @@ class File_typeViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         """return object for the current authenticated user"""
-        return self.queryset.filter(user=self.request.user).order_by('-type')
+        return self.queryset.filter(user=self.request.user).order_by('-type').distinct()
 
     def perform_create(self, serializer):
         """create a new file_Type"""
         serializer.save(user=self.request.user)
+
+
+class User_FileViewSet(viewsets.ModelViewSet):
+    """manage user_files in database"""
+
+    serializer_class = serializers.User_FileSerializer
+    queryset = User_File.objects.all()
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        """retrive the user_files for the authenticated user"""
+        return self.queryset.filter(user=self.request.user)

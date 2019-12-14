@@ -9,6 +9,7 @@ from user_files import views
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)
 router.register('file_type', views.File_typeViewSet)
+router.register('user_file', views.User_FileViewSet)
 app_name = 'user_files'
 
 urlpatterns = [
