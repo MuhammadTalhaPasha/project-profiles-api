@@ -69,3 +69,10 @@ class User_FileViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """retrive the user_files for the authenticated user"""
         return self.queryset.filter(user=self.request.user)
+
+    def get_serializer_class(self):
+        """Return appropriate serializer class"""
+        if self.action == 'retrieve':
+            return serializers.UserFileDetailSerializer
+
+        return self.serializer_class

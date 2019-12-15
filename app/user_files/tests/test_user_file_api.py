@@ -5,10 +5,26 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import User_File
-from user_files.serializers import User_FileSerializer
+from core.models import User_File, Tag, File_type
+
+from user_files.serializers import User_FileSerializer, UserFileDetailSerializer
 
 USER_FILES_URL = reverse('user_files:user_file-list')
+
+# /api/user_files/user_file
+# /api/user_files/user_file/1/
+
+def detail_url(user_file_id):
+    """Return userfile detail url"""
+    return reverse('user_files:user_file-detail', args=[user_file_id])
+
+def sample_tag(user, name='room'):
+    """create and return a sample tag"""
+    return Tag.objects.create(user=user, name=name)
+
+def sample_file_type(user, type='DWG'):
+    """create and return a sample file_type"""
+    return File_type.objects.create(user=user, type=type)
 
 def sample_user_files(user, **params):
     """Create and return a sample recipe"""
@@ -73,4 +89,16 @@ class PrivateUserFileApiTests(TestCase):
         serializer = User_FileSerializer(userfiles, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
+        self.assertEqual(res.data, serializer.data)
+
+    def test_view_userfile_detail(self):
+        """test viewing a user_file detail"""
+        user_file = sample_user_files(user=self.user)
+        user_file.tags.add(sample_tag(user=self.user))
+        user_file.file_types.add(sample_file_type(user=self.user))
+
+        url = detail_url(user_file.id)
+        res = self.client.get(url)
+
+        serializer = UserFileDetailSerializer(user_file)
         self.assertEqual(res.data, serializer.data)

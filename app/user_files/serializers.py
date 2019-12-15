@@ -37,3 +37,8 @@ class User_FileSerializer(serializers.ModelSerializer):
             'created_on','file_types', 'tags', 'link'
         )
         read_only_Fields = ('id',)
+
+class UserFileDetailSerializer(User_FileSerializer):
+    """serialize a user_file detail"""
+    file_types = File_typeSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
