@@ -1,3 +1,8 @@
+import tempfile
+import os
+
+from PIL import Image
+
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -14,6 +19,10 @@ USER_FILES_URL = reverse('user_files:user_file-list')
 # /api/user_files/user_file
 # /api/user_files/user_file/1/
 
+def userfile_upload_url(user_file_id):
+    """return URL for userfile file upload"""
+    return reverse('user_files:user_file-upload-file', args=[user_file_id])
+
 def detail_url(user_file_id):
     """Return userfile detail url"""
     return reverse('user_files:user_file-detail', args=[user_file_id])
@@ -29,7 +38,7 @@ def sample_file_type(user, type='DWG'):
 def sample_user_files(user, **params):
     """Create and return a sample recipe"""
     defaults = {
-        'title': 'Sample recipe',
+        'title': 'Sample file',
         # 'created_on':'12/12/12',
     }
     defaults.update(params)
@@ -151,3 +160,69 @@ class PrivateUserFileApiTests(TestCase):
         self.assertEqual(file_types.count(), 2)
         self.assertIn(file_type1, file_types)
         self.assertIn(file_type2, file_types)
+
+    def test_partial_update_userfile(self):
+        """test updating a recipe with patch"""
+        user_file = sample_user_files(user= self.user)
+        user_file.tags.add(sample_tag(user=self.user))
+        new_tag = sample_tag(user=self.user, name='room')
+
+        payload = {'title': 'sample file changed', ' tags' :[new_tag.id] }
+        url = detail_url(user_file.id)
+        self.client.patch(url, payload)
+
+        user_file.refresh_from_db()
+        self.assertEqual(user_file.title, payload['title'])
+        tags = user_file.tags.all()
+        self.assertEqual(len(tags), 1)
+        self.assertIn(new_tag, tags)
+
+    def test_full_update_userfile(self):
+        """test updating a userfile with put"""
+        user_file = sample_user_files(user=self.user)
+        user_file.tags.add(sample_tag(user=self.user))
+        payload = {
+            'title': 'sample file changed'
+        }
+        url = detail_url(user_file.id)
+        self.client.put(url, payload)
+
+        user_file.refresh_from_db()
+        self.assertEqual(user_file.title, payload['title'])
+        tags = user_file.tags.all()
+        self.assertEqual(len(tags), 0)
+
+class UserFileUploadTests(TestCase):
+
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(
+            'test@pashadev.com',
+            'testpass'
+        )
+        self.client.force_authenticate(self.user)
+        self.user_file = sample_user_files(user=self.user)
+
+    def tearDown(self):
+        self.user_file.file.delete()
+
+    def test_upload_file_to_userfile(self):
+        """test uploading an file to userfiles"""
+        url = userfile_upload_url(self.user_file.id)
+        with tempfile.NamedTemporaryFile(suffix='.jpg') as ntf:
+            img = Image.new('RGB', (10,10))
+            img.save(ntf, format='JPEG')
+            ntf.seek(0)
+            res = self.client.post(url, {'file': ntf}, format='multipart')
+
+        self.user_file.refresh_from_db()
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('file', res.data)
+        self.assertTrue(os.path.exists(self.user_file.file.path))
+
+    def test_upload_file_bad_request(self):
+        """test uploading an invalid file/image"""
+        url = userfile_upload_url(self.user_file.id)
+        res = self.client.post(url, {'file':'notimage'}, format='multipart')
+
+        self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)

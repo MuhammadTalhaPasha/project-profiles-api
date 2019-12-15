@@ -34,7 +34,7 @@ class User_FileSerializer(serializers.ModelSerializer):
         model = User_File
         fields = (
             'id', 'title',
-            'created_on','file_types', 'tags', 'link'
+            'file_types', 'tags','created_on', 'link'
         )
         read_only_Fields = ('id',)
 
@@ -42,3 +42,11 @@ class UserFileDetailSerializer(User_FileSerializer):
     """serialize a user_file detail"""
     file_types = File_typeSerializer(many=True, read_only=True)
     tags = TagSerializer(many=True, read_only=True)
+
+class UserFile_FilesSerializer(serializers.ModelSerializer):
+    """serializer for uploading files to userfiles"""
+
+    class Meta:
+        model = User_File
+        fields = ('id', 'file')
+        read_only_Fields = ('id')
