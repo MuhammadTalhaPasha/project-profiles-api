@@ -76,3 +76,7 @@ class User_FileViewSet(viewsets.ModelViewSet):
             return serializers.UserFileDetailSerializer
 
         return self.serializer_class
+
+    def perform_create(self, serializer):
+        """create a new user user_File"""
+        serializer.save(user=self.request.user)

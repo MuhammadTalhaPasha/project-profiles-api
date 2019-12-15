@@ -30,7 +30,7 @@ def sample_user_files(user, **params):
     """Create and return a sample recipe"""
     defaults = {
         'title': 'Sample recipe',
-        'created_on':'12/12/12',
+        # 'created_on':'12/12/12',
     }
     defaults.update(params)
 
@@ -102,3 +102,52 @@ class PrivateUserFileApiTests(TestCase):
 
         serializer = UserFileDetailSerializer(user_file)
         self.assertEqual(res.data, serializer.data)
+
+    def test_create_basic_userfile(self):
+        """test creating userfile"""
+        payload = {
+            'title':'ROOM'
+            # 'created_on': '20/4/19'
+        }
+        res = self.client.post(USER_FILES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        user_file = User_File.objects.get(id=res.data['id'])
+        for key in payload.keys():
+            self.assertEqual(payload[key], getattr(user_file, key))
+
+    def test_create_userfile_with_tags(self):
+        """test creating a userfile with tags"""
+        tag1 = sample_tag(user=self.user, name='tag 1')
+        tag2 = sample_tag(user=self.user, name='tag 2')
+        payload = {
+            'title': 'test with two tags',
+            'tags' : [tag1.id, tag2.id],
+            # 'created_on' : '12/4/19'
+        }
+        res = self.client.post(USER_FILES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        user_file = User_File.objects.get(id=res.data['id'])
+        tags = user_file.tags.all()
+        self.assertEqual(tags.count(), 2)
+        self.assertIn(tag1, tags)
+        self.assertIn(tag2, tags)
+
+    def test_create_userfile_with_filetype(self):
+        """test creating a userfile with tags"""
+        file_type1 = sample_file_type(user=self.user, type='DWG')
+        file_type2 = sample_file_type(user=self.user, type='DXF')
+        payload = {
+            'title': 'HOTEL',
+            'file_types': [file_type1.id, file_type2.id],
+            # 'created_on': '12/4/19'
+        }
+        res = self.client.post(USER_FILES_URL, payload)
+
+        self.assertEqual(res.status_code, status.HTTP_201_CREATED)
+        user_file = User_File.objects.get(id=res.data['id'])
+        file_types = user_file.file_types.all()
+        self.assertEqual(file_types.count(), 2)
+        self.assertIn(file_type1, file_types)
+        self.assertIn(file_type2, file_types)
