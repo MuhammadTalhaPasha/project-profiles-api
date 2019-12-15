@@ -69,8 +69,40 @@ class User_FileViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    def _params_to_ints(self, qs):
+        """convert a list of string ids to a list of integers"""
+        # our_string = '1,2,3'
+        # our_string_list = ['1','2','3']
+        #converting params to Integers
+        return [int(str_id) for str_id in qs.split(',')]
+
     def get_queryset(self):
         """retrive the user_files for the authenticated user"""
+        tags = self.request.query_params.get('tags')
+        file_types = self.request.query_params.get('file_types')
+        queryset = self.queryset
+        if tags:
+            tag_ids = self._params_to_ints(tags)
+            queryset = queryset.filter(tags__id__in=tag_ids)
+        if file_types:
+            file_type_ids = self._params_to_ints(file_types)
+            queryset = queryset.filter(file_types__id__in=file_type_ids)
+
+        return queryset.filter(user=self.request.user)
+
+        # tags = self.request.query_params.get('tags')
+        # file_types = self.request.query_params.get('file_types')
+        # queryset = self.queryset
+        # if tags:
+        #     tag_ids = self._params_to_ints(tags)
+        #     #for filtering a ForeignKey id then we do "__" i.e tags__id_in
+        #     queryset = queryset.filter(tags__id__in=tag_ids)
+        # if file_types:
+        #     file_type_ids = self._params_to_ints(file_types)
+        #     #for filtering a ForeignKey id then we do "__" i.e tags__id_in
+        #     queryset = queryset.filter(file_types__id__in=file_type_ids)
+
+
         return self.queryset.filter(user=self.request.user)
 
     def get_serializer_class(self):

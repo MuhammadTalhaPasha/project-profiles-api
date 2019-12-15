@@ -226,3 +226,47 @@ class UserFileUploadTests(TestCase):
         res = self.client.post(url, {'file':'notimage'}, format='multipart')
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_filter_userfile_by_tags(self):
+        """test returning usefile with specific tags"""
+        userfile1 = sample_user_files(user=self.user, title='room')
+        userfile2 = sample_user_files(user=self.user, title='house')
+        tag1 = sample_tag(user=self.user, name = 'my room')
+        tag2 = sample_tag(user=self.user, name = 'my house')
+        userfile1.tags.add(tag1)
+        userfile2.tags.add(tag2)
+        userfile3 = sample_user_files(user=self.user, title='bathroom')
+
+        res = self.client.get(
+            USER_FILES_URL,
+            {'tags': '{},{}'.format(tag1.id, tag2.id)}
+        )
+
+        serializer1 = User_FileSerializer(userfile1)
+        serializer2 = User_FileSerializer(userfile2)
+        serializer3 = User_FileSerializer(userfile3)
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)
+
+    def test_filter_userfile_by_filetype(self):
+        """test returning usefile with specific tags"""
+        userfile1 = sample_user_files(user=self.user, title='room1')
+        userfile2 = sample_user_files(user=self.user, title='house1')
+        file_type1 = sample_file_type(user=self.user, type = 'DWG')
+        file_type2 = sample_file_type(user=self.user, type = 'DXF')
+        userfile1.file_types.add(file_type1)
+        userfile2.file_types.add(file_type2)
+        userfile3 = sample_user_files(user=self.user, title='bathroom1')
+
+        res = self.client.get(
+            USER_FILES_URL,
+            {'file_types': '{},{}'.format(file_type1.id, file_type2.id)}
+        )
+
+        serializer1 = User_FileSerializer(userfile1)
+        serializer2 = User_FileSerializer(userfile2)
+        serializer3 = User_FileSerializer(userfile3)
+        self.assertIn(serializer1.data, res.data)
+        self.assertIn(serializer2.data, res.data)
+        self.assertNotIn(serializer3.data, res.data)
