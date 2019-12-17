@@ -36,7 +36,12 @@ class TagViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         """Return objects for the current authenticated user only"""
-        return self.queryset.filter(user=self.request.user).order_by('-name').distinct()
+        assigned_only = bool(self.request.query_params.get('assigned_only'))
+        queryset = self.queryset
+        if assigned_only:
+            queryset = queryset.filter(user_file__isnull=False)
+
+        return queryset.filter(user=self.request.user).order_by('-name').distinct()
 
     def perform_create(self, serializer):
         """create a new tag"""
@@ -54,7 +59,13 @@ class File_typeViewSet(viewsets.GenericViewSet,
 
     def get_queryset(self):
         """return object for the current authenticated user"""
-        return self.queryset.filter(user=self.request.user).order_by('-type').distinct()
+        assigned_only = bool(self.request.query_params.get('assigned_only'))
+        queryset = self.queryset
+        if assigned_only:
+            queryset = queryset.filter(user_file__isnull=False)
+
+
+        return queryset.filter(user=self.request.user).order_by('-type').distinct()
 
     def perform_create(self, serializer):
         """create a new file_Type"""
@@ -118,7 +129,7 @@ class User_FileViewSet(viewsets.ModelViewSet):
         """create a new user user_File"""
         serializer.save(user=self.request.user)
 
-    @action(methods=['POST'], detail=True, url_path='upload-file')
+    @action(methods=['POST', 'GET'], detail=True, url_path='upload-file')
     def upload_file(self, request, pk=None):
         """upload an file/image to a userfile"""
         user_file = self.get_object()

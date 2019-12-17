@@ -5,7 +5,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import File_type
+from core.models import File_type, User_File
 
 from user_files.serializers import File_typeSerializer
 
@@ -81,3 +81,20 @@ class PrivateFileTypeApiTests(TestCase):
         res = self.client.post(FILE_TYPE_URL, payload)
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_retrieve_file_type_assigned_to_userfile(self):
+        """test filtering filetypes by those assigned to userfile"""
+        file_type1 = File_type.objects.create(user=self.user, type='DWG')
+        file_type2 = File_type.objects.create(user=self.user, type='DXF')
+        user_file = User_File.objects.create(
+            title='house1',
+            user=self.user
+        )
+        user_file.file_types.add(file_type1)
+
+        res = self.client.get(FILE_TYPE_URL, {'assigned_only': 1})
+
+        serializer1 = File_typeSerializer(file_type1)
+        serializer2 = File_typeSerializer(file_type2)
+        self.assertIn(serializer1.data, res.data)
+        self.assertNotIn(serializer2.data, res.data)
