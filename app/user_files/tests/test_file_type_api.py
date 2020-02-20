@@ -11,6 +11,7 @@ from user_files.serializers import File_typeSerializer
 
 FILE_TYPE_URL = reverse('user_files:file_type-list')
 
+
 class PublicFileTypeApiTests(TestCase):
     """test the publicily available file_type api"""
 
@@ -44,7 +45,7 @@ class PrivateFileTypeApiTests(TestCase):
         res = self.client.get(FILE_TYPE_URL)
 
         file_type = File_type.objects.all().order_by('-type')
-        serializer = File_typeSerializer(file_type, many = True)
+        serializer = File_typeSerializer(file_type, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 

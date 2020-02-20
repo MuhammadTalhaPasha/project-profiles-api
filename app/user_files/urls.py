@@ -3,8 +3,8 @@ from rest_framework.routers import DefaultRouter
 
 from user_files import views
 
-#/api/user_files/tags/1/
-#default router automatically register approperiate actions for the viewsets
+# /api/user_files/tags/1/
+# default router automatically register approperiate actions for the viewsets
 
 router = DefaultRouter()
 router.register('tags', views.TagViewSet)

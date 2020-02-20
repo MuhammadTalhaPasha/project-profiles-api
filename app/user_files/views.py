@@ -9,6 +9,7 @@ from core.models import Tag, File_type, User_File
 
 from user_files import serializers
 
+
 # class BaseFilesAttrViewSet(viewsets.GenericViewSet,
 #                            mixins.ListModelMixin,
 #                            mixins.CreateModelMixin):
@@ -47,6 +48,7 @@ class TagViewSet(viewsets.GenericViewSet,
         """create a new tag"""
         serializer.save(user=self.request.user)
 
+
 class File_typeViewSet(viewsets.GenericViewSet,
                        mixins.ListModelMixin,
                        mixins.CreateModelMixin):
@@ -63,7 +65,6 @@ class File_typeViewSet(viewsets.GenericViewSet,
         queryset = self.queryset
         if assigned_only:
             queryset = queryset.filter(user_file__isnull=False)
-
 
         return queryset.filter(user=self.request.user).order_by('-type').distinct()
 
@@ -84,7 +85,7 @@ class User_FileViewSet(viewsets.ModelViewSet):
         """convert a list of string ids to a list of integers"""
         # our_string = '1,2,3'
         # our_string_list = ['1','2','3']
-        #converting params to Integers
+        # converting params to Integers
         return [int(str_id) for str_id in qs.split(',')]
 
     def get_queryset(self):
@@ -112,9 +113,7 @@ class User_FileViewSet(viewsets.ModelViewSet):
         #     file_type_ids = self._params_to_ints(file_types)
         #     #for filtering a ForeignKey id then we do "__" i.e tags__id_in
         #     queryset = queryset.filter(file_types__id__in=file_type_ids)
-
-
-        return self.queryset.filter(user=self.request.user)
+        # return self.queryset.filter(user=self.request.user)
 
     def get_serializer_class(self):
         """Return appropriate serializer class"""

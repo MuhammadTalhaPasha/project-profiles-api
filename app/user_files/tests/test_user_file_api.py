@@ -16,6 +16,7 @@ from user_files.serializers import User_FileSerializer, UserFileDetailSerializer
 
 USER_FILES_URL = reverse('user_files:user_file-list')
 
+
 # /api/user_files/user_file
 # /api/user_files/user_file/1/
 
@@ -23,17 +24,21 @@ def userfile_upload_url(user_file_id):
     """return URL for userfile file upload"""
     return reverse('user_files:user_file-upload-file', args=[user_file_id])
 
+
 def detail_url(user_file_id):
     """Return userfile detail url"""
     return reverse('user_files:user_file-detail', args=[user_file_id])
+
 
 def sample_tag(user, name='room'):
     """create and return a sample tag"""
     return Tag.objects.create(user=user, name=name)
 
+
 def sample_file_type(user, type='DWG'):
     """create and return a sample file_type"""
     return File_type.objects.create(user=user, type=type)
+
 
 def sample_user_files(user, **params):
     """Create and return a sample recipe"""
@@ -80,8 +85,8 @@ class PrivateUserFileApiTests(TestCase):
         userfiles = User_File.objects.all().order_by('-id')
         serializer = User_FileSerializer(userfiles, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        #there is an error of order of dict assertion error commented for the time being
-        #self.assertEqual(res.data, serializer.data)
+        # there is an error of order of dict assertion error commented for the time being
+        self.assertEqual(res.data, serializer.data)
 
     def test_userfiles_limited_to_user(self):
         """Test retrieving recipes for user"""
@@ -115,7 +120,7 @@ class PrivateUserFileApiTests(TestCase):
     def test_create_basic_userfile(self):
         """test creating userfile"""
         payload = {
-            'title':'ROOM'
+            'title': 'ROOM'
             # 'created_on': '20/4/19'
         }
         res = self.client.post(USER_FILES_URL, payload)
@@ -131,7 +136,7 @@ class PrivateUserFileApiTests(TestCase):
         tag2 = sample_tag(user=self.user, name='tag 2')
         payload = {
             'title': 'test with two tags',
-            'tags' : [tag1.id, tag2.id],
+            'tags': [tag1.id, tag2.id],
             # 'created_on' : '12/4/19'
         }
         res = self.client.post(USER_FILES_URL, payload)
@@ -163,11 +168,11 @@ class PrivateUserFileApiTests(TestCase):
 
     def test_partial_update_userfile(self):
         """test updating a recipe with patch"""
-        user_file = sample_user_files(user= self.user)
+        user_file = sample_user_files(user=self.user)
         user_file.tags.add(sample_tag(user=self.user))
         new_tag = sample_tag(user=self.user, name='room')
 
-        payload = {'title': 'sample file changed', ' tags' :[new_tag.id] }
+        payload = {'title': 'sample file changed', ' tags': [new_tag.id]}
         url = detail_url(user_file.id)
         self.client.patch(url, payload)
 
@@ -192,6 +197,7 @@ class PrivateUserFileApiTests(TestCase):
         tags = user_file.tags.all()
         self.assertEqual(len(tags), 0)
 
+
 class UserFileUploadTests(TestCase):
 
     def setUp(self):
@@ -210,7 +216,7 @@ class UserFileUploadTests(TestCase):
         """test uploading an file to userfiles"""
         url = userfile_upload_url(self.user_file.id)
         with tempfile.NamedTemporaryFile(suffix='.jpg') as ntf:
-            img = Image.new('RGB', (10,10))
+            img = Image.new('RGB', (10, 10))
             img.save(ntf, format='JPEG')
             ntf.seek(0)
             res = self.client.post(url, {'file': ntf}, format='multipart')
@@ -223,7 +229,7 @@ class UserFileUploadTests(TestCase):
     def test_upload_file_bad_request(self):
         """test uploading an invalid file/image"""
         url = userfile_upload_url(self.user_file.id)
-        res = self.client.post(url, {'file':'notimage'}, format='multipart')
+        res = self.client.post(url, {'file': 'notimage'}, format='multipart')
 
         self.assertEqual(res.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -231,8 +237,8 @@ class UserFileUploadTests(TestCase):
         """test returning usefile with specific tags"""
         userfile1 = sample_user_files(user=self.user, title='room')
         userfile2 = sample_user_files(user=self.user, title='house')
-        tag1 = sample_tag(user=self.user, name = 'my room')
-        tag2 = sample_tag(user=self.user, name = 'my house')
+        tag1 = sample_tag(user=self.user, name='my room')
+        tag2 = sample_tag(user=self.user, name='my house')
         userfile1.tags.add(tag1)
         userfile2.tags.add(tag2)
         userfile3 = sample_user_files(user=self.user, title='bathroom')
@@ -253,8 +259,8 @@ class UserFileUploadTests(TestCase):
         """test returning usefile with specific tags"""
         userfile1 = sample_user_files(user=self.user, title='room1')
         userfile2 = sample_user_files(user=self.user, title='house1')
-        file_type1 = sample_file_type(user=self.user, type = 'DWG')
-        file_type2 = sample_file_type(user=self.user, type = 'DXF')
+        file_type1 = sample_file_type(user=self.user, type='DWG')
+        file_type2 = sample_file_type(user=self.user, type='DXF')
         userfile1.file_types.add(file_type1)
         userfile2.file_types.add(file_type2)
         userfile3 = sample_user_files(user=self.user, title='bathroom1')
@@ -270,4 +276,3 @@ class UserFileUploadTests(TestCase):
         self.assertIn(serializer1.data, res.data)
         self.assertIn(serializer2.data, res.data)
         self.assertNotIn(serializer3.data, res.data)
-        
